@@ -1,124 +1,172 @@
 # Petrobras Financial Statement Validator
 
-Projeto de portfólio focado em análise de demonstrações financeiras da Petrobras utilizando dados públicos da CVM.
-
-O objetivo é aplicar conceitos de análise de dados, SQL e auditoria contábil para validar consistência financeira e identificar possíveis anomalias nos dados.
-
----
-
-## Objetivos
-
-- Validar consistência contábil das demonstrações financeiras
-- Detectar variações anormais ao longo do tempo
-- Realizar consultas analíticas com SQL
-- Construir base de dados para visualização no Power BI
+Análise das demonstrações financeiras da Petrobras com dados públicos da CVM,
+aplicando Python, SQL e técnicas de auditoria contábil para validar consistência,
+calcular KPIs financeiros e detectar anomalias trimestrais.
 
 ---
 
-## Tecnologias utilizadas
+## Visão geral
 
-- Python (pandas, sqlite3)
-- SQL (SQLite)
-- Jupyter Notebook
+Este projeto replica processos comuns em análise financeira e auditoria de dados,
+cobrindo o pipeline completo desde a ingestão dos dados brutos até a geração de
+um painel executivo com insights dinâmicos.
 
----
-
-## Estrutura do projeto
-petrobras-financial-statement-validator/
-│
-├── data/
-│ ├── raw/ # Dados brutos da CVM
-│ └── processed/ # Dados tratados e banco SQLite
-│
-├── notebooks/
-│ └── petrobras_analysis.ipynb
-│
-├── sql/
-│ ├── create_tables.sql
-│ ├── validation_checks.sql
-│ └── anomaly_queries.sql
-│
-├── src/
-│ ├── extract.py
-│ ├── load_sqlite.py
-│ ├── validate.py
-│ └── anomaly.py
-│
-├── dashboard/
-│ ├── petrobras_financial_dashboard.pbix
-│ └── dashboard_preview.png
-│
-├── README.md
-└── requirements.txt
-
-## Pipeline do projeto
-Dados CVM → Python (ETL) → SQLite → SQL → Notebook → 
-
-## Análises realizadas
-
-### 1. Validação contábil
-Verificação da equação patrimonial:
-
-Ativo = Passivo + Patrimônio Líquido
+Desenvolvido como projeto de portfólio para demonstrar habilidades em:
+- Análise e tratamento de dados financeiros reais
+- SQL intermediário e avançado (window functions)
+- Detecção estatística de anomalias
+- Storytelling executivo em notebook
 
 ---
 
-### 2. Análise de crescimento
-Cálculo de crescimento trimestral (QoQ):
-QoQ = (Valor_t - Valor_{t-1}) / Valor_{t-1}
-### 3. Indicadores financeiros
+## Pipeline
+dados brutos (CVM)
+↓
+tratamento e padronização
+↓
+persistência em SQLite
+↓
+análise SQL (JOIN, LAG, RANK, Running Total)
+↓
+detecção de anomalias (QoQ + Z-score)
+↓
+executive dashboard (KPI panel + gráficos)
+↓
+exportação dos dados processados
+---
 
-- Receita líquida ao longo do tempo
+## Estrutura do notebook
+
+| Seção | Conteúdo |
+|-------|----------|
+| 1–3   | Leitura, filtragem e padronização dos dados da CVM |
+| 4     | Persistência em banco SQLite |
+| 5–6   | Queries SQL: receita e debt ratio com JOIN |
+| 7     | Visualizações da receita e risco |
+| 8–9   | Variação QoQ e alertas automáticos |
+| 10    | Detecção de outliers com Z-score |
+| 11    | Exportação dos datasets processados |
+| 12    | Conclusão |
+| 13    | Executive Dashboard — KPI panel, gráficos 2×2, radar de anomalias e insights |
+| 14    | SQL Analytics Avançado — LAG, RANK, DENSE_RANK, Running Total |
+![Dashboard](data/processed/dashboard.png)
+
+---
+
+## KPIs analisados
+
+- Receita líquida
 - Lucro líquido
-- Debt Ratio (Dívida / Patrimônio Líquido)
+- Margem líquida (Lucro / Receita)
+- Debt Ratio (Empréstimos / Patrimônio Líquido)
+- Variação QoQ trimestral
+- Z-score da receita
+- Receita acumulada corrente (Running Total)
 
 ---
 
-### 4. Detecção de anomalias
+## SQL avançado
 
-- Variações superiores a 25%
-- Outliers utilizando Z-score
+A seção 14 demonstra o uso de window functions diretamente no SQLite,
+sem transformações externas em pandas:
+```sql
+-- LAG: variação período a período
+LAG(value) OVER (ORDER BY date)
 
----
+-- RANK e DENSE_RANK: ranking de períodos por receita
+RANK() OVER (ORDER BY value DESC)
 
-## Banco de dados
-
-Os dados tratados são armazenados em SQLite na tabela:
-
-`financial_statements`
-
-Campos principais:
-- DT_REFER (data)
-- DS_CONTA (nome da conta)
-- VL_CONTA (valor)
-
----
-
-## 📊 Executive Dashboard Preview
-![Dashboard](dashboard/executive_dashboard_preview.png)
-
-O projeto inclui um dashboard interativo com:
-
-- Evolução da receita
-- Relação dívida/patrimônio
-- Indicadores financeiros
-- Alertas de anomalias
-
-Preview:
-
-![Dashboard](dashboard/dashboard_preview.png)
+-- Running Total: receita acumulada corrente
+SUM(value) OVER (
+    ORDER BY date
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+)
+```
 
 ---
 
-## Principais aprendizados
+## Detecção de anomalias
 
-- Manipulação de dados financeiros reais
-- Uso de SQL para análise de dados
-- Aplicação de conceitos de auditoria
-- Integração entre Python e SQL 
+Dois métodos independentes são aplicados à série de receita líquida:
+
+**QoQ (variação trimestral):** variações superiores a 25% entre períodos
+consecutivos são sinalizadas automaticamente.
+
+**Z-score:** valores além de ±2 desvios padrão da média histórica
+são marcados como outliers estatísticos.
+
+Os resultados são consolidados em um radar de anomalias com highlight
+por tipo de alerta na seção 13.3.
 
 ---
 
-## Autor: Matheus de Araujo Veras
+## Stack
 
-Projeto desenvolvido para portfólio com foco em estágio em dados e auditoria.
+| Ferramenta | Uso |
+|------------|-----|
+| Python 3.x | linguagem principal |
+| pandas | tratamento e análise de dados |
+| SQLite + sqlite3 | persistência e queries SQL |
+| matplotlib | visualizações |
+| Jupyter Notebook | ambiente de desenvolvimento |
+
+---
+
+## Fonte dos dados
+
+Dados públicos disponibilizados pela CVM (Comissão de Valores Mobiliários)
+no portal de dados abertos:
+
+[https://dados.cvm.gov.br](https://dados.cvm.gov.br)
+
+Arquivo utilizado: `dfp_cia_aberta_DRE_con.csv`
+Período analisado: 2023–2024
+
+---
+
+## Estrutura do repositório
+petrobras-financial-validator/
+├── data/
+│   ├── raw/
+│   │   └── dfp_cia_aberta_DRE_con.csv
+│   └── processed/
+│       ├── petrobras.db
+│       ├── final_data.csv
+│       ├── revenue_analysis.csv
+│       ├── alerts.csv
+│       └── dashboard.png
+├── notebooks/
+│   └── petrobras_financial_validator.ipynb
+├── requirements.txt
+└── README.md
+---
+
+## Como executar
+```bash
+# 1. Clone o repositório
+git clone https://github.com/MatheusverasMV/petrobras-financial-validator.git
+cd petrobras-financial-validator
+
+# 2. Instale as dependências
+pip install -r requirements.txt
+
+# 3. Baixe os dados da CVM e coloque em data/raw/
+
+# 4. Execute o notebook
+jupyter notebook notebooks/petrobras_financial_validator.ipynb
+```
+
+---
+
+## requirements.txt
+pandas
+matplotlib
+jupyter
+
+---
+
+## Autor
+
+Desenvolvido como projeto de portfólio para vagas de estágio em
+dados, BI e análise financeira.
