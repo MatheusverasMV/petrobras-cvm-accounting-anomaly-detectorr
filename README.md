@@ -177,7 +177,7 @@ Período analisado: 2023–2024
 ## Como executar
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/seu-usuario/petrobras-cvm-accounting.git
+git clone https://github.com/MatheusverasMV/petrobras-cvm-accounting.git
 cd petrobras-cvm-accounting
 
 # 2. Instale as dependências
