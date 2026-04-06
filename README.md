@@ -19,7 +19,6 @@ O objetivo é aplicar conceitos de análise de dados, SQL e auditoria contábil 
 
 - Python (pandas, sqlite3)
 - SQL (SQLite)
-- Power BI
 - Jupyter Notebook
 
 ---
@@ -53,7 +52,7 @@ petrobras-financial-statement-validator/
 └── requirements.txt
 
 ## Pipeline do projeto
-Dados CVM → Python (ETL) → SQLite → SQL → Notebook → Power BI
+Dados CVM → Python (ETL) → SQLite → SQL → Notebook → 
 
 ## Análises realizadas
 
@@ -95,7 +94,8 @@ Campos principais:
 
 ---
 
-## Dashboard (Power BI)
+## 📊 Executive Dashboard Preview
+![Dashboard](dashboard/executive_dashboard_preview.png)
 
 O projeto inclui um dashboard interativo com:
 
@@ -115,7 +115,7 @@ Preview:
 - Manipulação de dados financeiros reais
 - Uso de SQL para análise de dados
 - Aplicação de conceitos de auditoria
-- Integração entre Python, SQL e Power BI
+- Integração entre Python e SQL 
 
 ---
 
