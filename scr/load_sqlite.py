@@ -3,7 +3,6 @@ import pandas as pd
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent.parent / "data" / "processed" / "petrobras.db"
-TABLE_NAME = "financial_statements"
 
 
 def get_connection(db_path: Path = DB_PATH) -> sqlite3.Connection:
@@ -12,36 +11,46 @@ def get_connection(db_path: Path = DB_PATH) -> sqlite3.Connection:
     return sqlite3.connect(db_path)
 
 
-def load(df: pd.DataFrame, conn: sqlite3.Connection) -> None:
-    """Carrega o DataFrame na tabela SQLite, substituindo dados anteriores."""
-    df.to_sql(TABLE_NAME, conn, if_exists="replace", index=False)
-    print(f"Tabela '{TABLE_NAME}' carregada com {len(df)} registros.")
+def load_dre(df: pd.DataFrame, conn: sqlite3.Connection) -> None:
+    """Carrega DRE na tabela financial_statements."""
+    df.to_sql("financial_statements", conn, if_exists="replace", index=False)
+    print(f"Tabela 'financial_statements' carregada com {len(df)} registros.")
+
+
+def load_bpp(df: pd.DataFrame, conn: sqlite3.Connection) -> None:
+    """Carrega BPP na tabela balance_sheet."""
+    df.to_sql("balance_sheet", conn, if_exists="replace", index=False)
+    print(f"Tabela 'balance_sheet' carregada com {len(df)} registros.")
 
 
 def validate_load(conn: sqlite3.Connection) -> None:
-    """Verifica se a carga foi bem-sucedida consultando contagens por conta."""
-    query = f"""
-    SELECT account, COUNT(*) AS n_periodos
-    FROM {TABLE_NAME}
-    GROUP BY account
-    ORDER BY account
-    """
-    result = pd.read_sql(query, conn)
-    print("\nRegistros por conta no banco:")
-    print(result.to_string(index=False))
+    """Verifica contagens por conta nas duas tabelas."""
+    for table in ["financial_statements", "balance_sheet"]:
+        query = f"""
+        SELECT account, COUNT(*) AS n_periodos
+        FROM {table}
+        GROUP BY account
+        ORDER BY account
+        """
+        result = pd.read_sql(query, conn)
+        print(f"\nTabela '{table}':")
+        print(result.to_string(index=False))
 
 
-def run(df: pd.DataFrame) -> sqlite3.Connection:
-    """Executa carga completa e retorna conexão aberta para uso posterior."""
+def run(df_dre: pd.DataFrame, df_bpp: pd.DataFrame) -> sqlite3.Connection:
+    """Executa carga completa e retorna conexão aberta."""
     conn = get_connection()
-    load(df, conn)
+    load_dre(df_dre, conn)
+    load_bpp(df_bpp, conn)
     validate_load(conn)
     return conn
 
 
 if __name__ == "__main__":
-    from extract import run as extract
-    df_clean = extract()
-    conn = run(df_clean)
+    from extract import run_dre, run_bpp
+
+    df_dre = run_dre()
+    df_bpp = run_bpp()
+    conn   = run(df_dre, df_bpp)
     conn.close()
-    print("Conexão encerrada.")
+    print("\nConexão encerrada.")
