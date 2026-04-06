@@ -16,41 +16,78 @@ Desenvolvido como projeto de portfólio para demonstrar habilidades em:
 - Análise e tratamento de dados financeiros reais
 - SQL intermediário e avançado (window functions)
 - Detecção estatística de anomalias
+- Pipeline modular com separação entre extração, carga e validação
 - Storytelling executivo em notebook
+
+---
+
+## Dashboard
+
+![Dashboard](dashboard/executive_dashboard_preview.png)
 
 ---
 
 ## Pipeline
 dados brutos (CVM)
 ↓
-tratamento e padronização
+extract.py — leitura, filtro e padronização
 ↓
-persistência em SQLite
+load_sqlite.py — persistência em SQLite
 ↓
-análise SQL (JOIN, LAG, RANK, Running Total)
+validate.py — checagem de consistência automática
 ↓
-detecção de anomalias (QoQ + Z-score)
+anomaly.py — detecção QoQ e Z-score
 ↓
-executive dashboard (KPI panel + gráficos)
+notebook — SQL analytics, dashboard executivo e insights
 ↓
-exportação dos dados processados
+data/processed/ — CSVs e PNG exportados
+
+---
+
+## Estrutura do repositório
+petrobras-cvm-accounting/
+├── dashboard/
+│   └── executive_dashboard_preview.png
+├── data/
+│   ├── raw/
+│   │   └── COMO_BAIXAR.md
+│   └── processed/
+│       ├── alerts.csv
+│       ├── final_data.csv
+│       ├── revenue_analysis.csv
+│       └── petrobras.db
+├── notebooks/
+│   └── petrobras_analysis.ipynb
+├── scr/
+│   ├── extract.py
+│   ├── load_sqlite.py
+│   ├── anomaly.py
+│   └── validate.py
+├── sql/
+│   ├── create_tables.sql
+│   ├── anomaly_queries.sql
+│   └── validation_checks.sql
+├── .gitignore
+├── LICENSE
+├── README.md
+└── requirements.txt
+
 ---
 
 ## Estrutura do notebook
 
 | Seção | Conteúdo |
 |-------|----------|
-| 1–3   | Leitura, filtragem e padronização dos dados da CVM |
-| 4     | Persistência em banco SQLite |
-| 5–6   | Queries SQL: receita e debt ratio com JOIN |
-| 7     | Visualizações da receita e risco |
-| 8–9   | Variação QoQ e alertas automáticos |
-| 10    | Detecção de outliers com Z-score |
-| 11    | Exportação dos datasets processados |
-| 12    | Conclusão |
-| 13    | Executive Dashboard — KPI panel, gráficos 2×2, radar de anomalias e insights |
-| 14    | SQL Analytics Avançado — LAG, RANK, DENSE_RANK, Running Total |
-![Dashboard](data/processed/dashboard.png)
+| 1–3 | Leitura, filtragem e padronização dos dados da CVM |
+| 4 | Persistência em banco SQLite |
+| 5–6 | Queries SQL: receita e debt ratio com JOIN |
+| 7 | Visualizações da receita e risco |
+| 8–9 | Variação QoQ e alertas automáticos |
+| 10 | Detecção de outliers com Z-score |
+| 11 | Exportação dos datasets processados |
+| 12 | Conclusão |
+| 13 | Executive Dashboard — KPI panel, gráficos 2×2, radar de anomalias e insights |
+| 14 | SQL Analytics Avançado — LAG, RANK, DENSE_RANK, Running Total |
 
 ---
 
@@ -68,8 +105,8 @@ exportação dos dados processados
 
 ## SQL avançado
 
-A seção 14 demonstra o uso de window functions diretamente no SQLite,
-sem transformações externas em pandas:
+A seção 14 e os arquivos em `sql/` demonstram o uso de window functions
+diretamente no SQLite, sem transformações externas em pandas:
 ```sql
 -- LAG: variação período a período
 LAG(value) OVER (ORDER BY date)
@@ -97,7 +134,19 @@ consecutivos são sinalizadas automaticamente.
 são marcados como outliers estatísticos.
 
 Os resultados são consolidados em um radar de anomalias com highlight
-por tipo de alerta na seção 13.3.
+por tipo de alerta na seção 13.3 do notebook.
+
+---
+
+## Validação automática
+
+O módulo `scr/validate.py` executa quatro verificações automáticas
+antes de qualquer análise:
+
+- Ausência de nulos nas colunas críticas
+- Presença de todas as contas esperadas
+- Cobertura temporal correta (2023–2024)
+- Tipos numéricos válidos na coluna de valores
 
 ---
 
@@ -125,36 +174,26 @@ Período analisado: 2023–2024
 
 ---
 
-## Estrutura do repositório
-petrobras-financial-validator/
-├── data/
-│   ├── raw/
-│   │   └── dfp_cia_aberta_DRE_con.csv
-│   └── processed/
-│       ├── petrobras.db
-│       ├── final_data.csv
-│       ├── revenue_analysis.csv
-│       ├── alerts.csv
-│       └── dashboard.png
-├── notebooks/
-│   └── petrobras_financial_validator.ipynb
-├── requirements.txt
-└── README.md
----
-
 ## Como executar
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/MatheusverasMV/petrobras-financial-validator.git
-cd petrobras-financial-validator
+git clone https://github.com/seu-usuario/petrobras-cvm-accounting.git
+cd petrobras-cvm-accounting
 
 # 2. Instale as dependências
 pip install -r requirements.txt
 
-# 3. Baixe os dados da CVM e coloque em data/raw/
+# 3. Baixe os dados da CVM
+# Siga as instruções em data/raw/COMO_BAIXAR.md
 
-# 4. Execute o notebook
-jupyter notebook notebooks/petrobras_financial_validator.ipynb
+# 4. Execute o pipeline modular (opcional)
+python scr/extract.py
+python scr/load_sqlite.py
+python scr/validate.py
+python scr/anomaly.py
+
+# 5. Ou execute diretamente pelo notebook
+jupyter notebook notebooks/petrobras_analysis.ipynb
 ```
 
 ---
@@ -163,8 +202,6 @@ jupyter notebook notebooks/petrobras_financial_validator.ipynb
 pandas
 matplotlib
 jupyter
-
----
 
 ## Autor
 
