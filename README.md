@@ -103,7 +103,7 @@ petrobras-cvm-accounting/
 
 ---
 
-## SQL avançado
+## SQL 
 
 A seção 14 e os arquivos em `sql/` demonstram o uso de window functions
 diretamente no SQLite, sem transformações externas em pandas:
