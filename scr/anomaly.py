@@ -1,5 +1,5 @@
-import pandas as pd
 import sqlite3
+import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
@@ -7,16 +7,19 @@ ANOMALY_THRESHOLD = 0.25
 ZSCORE_THRESHOLD  = 2.0
 ALERTS_PATH = Path(__file__).parent.parent / "data" / "processed" / "alerts.csv"
 
+RECEITA_ACCOUNT = "Receita de Venda de Bens e/ou Serviços"
+
 
 def load_revenue(conn: sqlite3.Connection) -> pd.DataFrame:
     """Busca série de receita líquida ordenada por data."""
-    query = """
+    query = f"""
     SELECT date, value
     FROM financial_statements
-    WHERE account = 'Receita líquida'
+    WHERE account = '{RECEITA_ACCOUNT}'
     ORDER BY date
     """
     df = pd.read_sql(query, conn)
+    df["value"] = pd.to_numeric(df["value"], errors="coerce")
     return df.sort_values("date").reset_index(drop=True).copy()
 
 
@@ -43,7 +46,7 @@ def detect_zscore_outliers(df: pd.DataFrame, threshold: float = ZSCORE_THRESHOLD
 
 
 def build_radar(alerts: pd.DataFrame, outliers: pd.DataFrame) -> pd.DataFrame:
-    """Consolida alertas QoQ e outliers Z-score em uma tabela única."""
+    """Consolida alertas QoQ e outliers Z-score em tabela única."""
     qoq_df = alerts[["date", "value", "qoq"]].copy()
     qoq_df["tipo"] = "QoQ"
     qoq_df = qoq_df.rename(columns={"qoq": "indicador"})
@@ -63,9 +66,9 @@ def export_alerts(radar: pd.DataFrame) -> None:
 
 def run(conn: sqlite3.Connection) -> dict:
     """Executa pipeline completo de detecção de anomalias."""
-    revenue = load_revenue(conn)
-    revenue = compute_qoq(revenue)
-    revenue = compute_zscore(revenue)
+    revenue  = load_revenue(conn)
+    revenue  = compute_qoq(revenue)
+    revenue  = compute_zscore(revenue)
 
     alerts   = detect_qoq_alerts(revenue)
     outliers = detect_zscore_outliers(revenue)
@@ -78,19 +81,19 @@ def run(conn: sqlite3.Connection) -> dict:
     print(f"Total no radar:    {len(radar)} evento(s)")
 
     return {
-        "revenue": revenue,
-        "alerts":  alerts,
+        "revenue":  revenue,
+        "alerts":   alerts,
         "outliers": outliers,
-        "radar":   radar
+        "radar":    radar
     }
 
 
 if __name__ == "__main__":
-    from load_sqlite import get_connection
-    from extract import run as extract
-    from load_sqlite import run as load
+    from load_sqlite import get_connection, run as load
+    from extract import run_dre, run_bpp
 
-    df_clean = extract()
-    conn     = load(df_clean)
-    results  = run(conn)
+    df_dre = run_dre()
+    df_bpp = run_bpp()
+    conn   = load(df_dre, df_bpp)
+    run(conn)
     conn.close()
