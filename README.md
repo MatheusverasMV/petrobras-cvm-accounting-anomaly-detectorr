@@ -87,7 +87,7 @@ petrobras-cvm-accounting/
 | 11 | Exportação dos datasets processados |
 | 12 | Conclusão |
 | 13 | Executive Dashboard — KPI panel, gráficos 2×2, radar de anomalias e insights |
-| 14 | SQL Analytics Avançado — LAG, RANK, DENSE_RANK, Running Total |
+| 14 | SQL Analytics  — LAG, RANK, DENSE_RANK, Running Total |
 
 ---
 
@@ -154,7 +154,7 @@ antes de qualquer análise:
 
 | Ferramenta | Uso |
 |------------|-----|
-| Python 3.x | linguagem principal |
+| Python 3 | linguagem principal |
 | pandas | tratamento e análise de dados |
 | SQLite + sqlite3 | persistência e queries SQL |
 | matplotlib | visualizações |
@@ -203,7 +203,7 @@ pandas
 matplotlib
 jupyter
 
-## Autor
+## Matheus de Araujo Veras
 
 Desenvolvido como projeto de portfólio para vagas de estágio em
 dados, BI e análise financeira.
