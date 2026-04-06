@@ -1,0 +1,16 @@
+# dados brutos e processados
+data/raw/*.csv
+data/raw/*.zip
+data/processed/*.csv
+data/processed/*.db
+data/processed/*.png
+
+# jupyter
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+.env
